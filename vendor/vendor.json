@@ -1,0 +1,29 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "fetch",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "90S9sFqcIo/uuwQzz1t/wYs7GEs=",
+			"path": "github.com/gin-gonic/gin",
+			"revision": "b869fe1415e4b9eb52f247441830d502aece2d4d",
+			"revisionTime": "2018-08-14T08:58:52Z",
+			"version": "v1.3",
+			"versionExact": "v1.3.0"
+		},
+		{
+			"checksumSHA1": "B53wU0lgdq8mXjS2/v0n67zKDjw=",
+			"path": "github.com/protonmail/go-autostart",
+			"revision": "c5272053443a332e50aa4e949551f0fa219b2655",
+			"revisionTime": "2018-11-14T17:56:02Z"
+		},
+		{
+			"path": "govendor",
+			"revision": ""
+		}
+	],
+	"rootPath": "awesomeProject"
+}

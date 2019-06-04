@@ -1,5 +1,11 @@
 package main
 
+/*
+REST webserver that starts and stops recording the screen.
+Handles start and stop requests from Shelter webapp
+Records screen using VLC Player
+*/
+
 import (
 	"encoding/json"
 	"fmt"
@@ -19,6 +25,7 @@ type Confirmation struct {
 
 var timeout_timer *time.Timer
 
+// For handling timeouts after 60 minutes
 const INACTIVE = 0
 const RECORDING = 1
 const WAITING = 2
@@ -28,6 +35,8 @@ type RecordingStatus struct {
 }
 
 var recording = INACTIVE
+
+// Insuring that we dont start recording again after stopping for timeout
 var timeout_triggered = false
 
 func main () {
@@ -39,6 +48,8 @@ func main () {
 	router.HandleFunc("/start", startRecording)
 	router.HandleFunc("/stop", stopRecording)
 	router.HandleFunc("/status", getStatus)
+
+	// Cors handling is needed due to the request coming from a different origin
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -62,6 +73,8 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Started Timer")
+
+	// The timeout timer determines when the recording should automatically stop
 
 	timeout_timer = time.AfterFunc(20 * time.Second, stopTimer)
 
@@ -99,10 +112,16 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A Reset parameter is sent in the request to determine if the stop call is from shelter reset or timeout
+	// If the recording timed out the Reset parameter will be false
+
 	if request.Reset == "true" {
 		timeout_triggered = false
 	}
 
+
+	// If a name is supplied in the webapp the video is saved in C:\\BCSVideoes and named its timestamp
+	// If not the video is deleted
 	if len(request.Name) > 1 {
 		fmt.Println("Saving file")
 		var time_now = time.Now().Format("2006_01_02-15_04_05")
@@ -135,6 +154,11 @@ func stopTimer () {
 	recording = WAITING
 }
 
+// Returns the current recording status 
+// INACTIVE - If not recording
+// RECORDING - If recording
+// WAITING - If stopped by timeout
+
 func getStatus (w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Timeout: " + strconv.FormatBool(timeout_triggered))
@@ -148,7 +172,6 @@ func getStatus (w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Posting status v2")
-	
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)

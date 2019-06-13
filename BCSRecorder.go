@@ -76,7 +76,7 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 
 	// The timeout timer determines when the recording should automatically stop
 
-	timeout_timer = time.AfterFunc(20 * time.Second, stopTimer)
+	timeout_timer = time.AfterFunc(60 * time.Minute, stopTimer)
 
 	w.Write([]byte("Capturing Screen"))
 

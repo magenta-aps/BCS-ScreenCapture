@@ -29,7 +29,7 @@ type Configuration struct {
 	ROOTHOST string
 	PORT string
 	VIDEO_SAVE_PATH string
-	TIMEOUT_IN_MINUTES int
+	TIMEOUT_IN_MINUTES time.Duration
 	SAVE_NAME_IN_VIDEO bool
 }
 
@@ -103,14 +103,13 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 
 	// The timeout timer determines when the recording should automatically stop
 
-	timeout_timer = time.AfterFunc(60 * time.Minute, stopTimer)
+	timeout_timer = time.AfterFunc(configuration.TIMEOUT_IN_MINUTES * time.Minute, stopTimer)
 
 	w.Write([]byte("Capturing Screen"))
 
 }
 
 func stopRecording (w http.ResponseWriter, r *http.Request) {
-	fmt.Println("STOPPING RECORDING")
 	fmt.Println("Timeout: " + strconv.FormatBool(timeout_triggered))
 	fmt.Println("Recording: " + strconv.Itoa(recording))
 

@@ -52,17 +52,22 @@ var timeout_triggered = false
 
 func main () {
 	// Load configuration
-	file, _ := os.Open("conf.json")
-	defer file.Close()
-    //configuration := Configuration{}
-	decoder := json.NewDecoder(file)
-	err := decoder.Decode(&configuration)
+	file, err := os.Open("conf.json.txt")
 	if err != nil {
-		log.Fatal("error:", err)
+		log.Fatal("Error: ", err)
+	}
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&configuration)
+	if err != nil {
+		log.Fatal("Failed to decode json configuration file: ", err)
 	}
 
 	if _, err := os.Stat(configuration.VIDEO_SAVE_PATH); os.IsNotExist(err) {
-		os.Mkdir(configuration.VIDEO_SAVE_PATH, 0777)
+		err := os.Mkdir(configuration.VIDEO_SAVE_PATH, 0777)
+		if err != nil {
+			log.Fatal("Failed to create directory: ", configuration.VIDEO_SAVE_PATH)
+		}
 	}
 
 	router := mux.NewRouter()
@@ -90,7 +95,7 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		recording = RECORDING
-		go captureScreen()
+		go captureScreen(configuration.RECORDING_SOFTWARE_PATH, configuration.VIDEO_SAVE_PATH)
 		fmt.Println("Capturing Screen")
 	}
 
@@ -130,6 +135,7 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
+		log.Print(err)
 		http.Error(w, err.Error(), 400)
 		return
 	}

@@ -23,6 +23,16 @@ type Confirmation struct {
 	Reset string
 }
 
+type Configuration struct {
+	RECORDING_SOFTWARE_PATH string
+	CERTIFICATE_PATH string
+	ROOTHOST string
+	PORT string
+	VIDEO_SAVE_PATH string
+	TIMEOUT_IN_MINUTES int
+	SAVE_NAME_IN_VIDEO bool
+}
+
 var timeout_timer *time.Timer
 
 // For handling timeouts after 60 minutes
@@ -35,13 +45,24 @@ type RecordingStatus struct {
 }
 
 var recording = INACTIVE
+var configuration = Configuration{}
 
 // Insuring that we dont start recording again after stopping for timeout
 var timeout_triggered = false
 
 func main () {
-	if _, err := os.Stat("C:\\BCSVideos"); os.IsNotExist(err) {
-		os.Mkdir("C:\\BCSVideos", 0777)
+	// Load configuration
+	file, _ := os.Open("conf.json")
+	defer file.Close()
+    //configuration := Configuration{}
+	decoder := json.NewDecoder(file)
+	err := decoder.Decode(&configuration)
+	if err != nil {
+		log.Fatal("error:", err)
+	}
+
+	if _, err := os.Stat(configuration.VIDEO_SAVE_PATH); os.IsNotExist(err) {
+		os.Mkdir(configuration.VIDEO_SAVE_PATH, 0777)
 	}
 
 	router := mux.NewRouter()
@@ -58,7 +79,8 @@ func main () {
 
 	handler := c.Handler(router)
 
-	if err := http.ListenAndServeTLS("loc.bcomesafe.com:3032","bcomesafe.crt", "bcomesafe.key", handler); err != nil {
+	hostname := configuration.ROOTHOST + ":" + configuration.PORT
+	if err := http.ListenAndServeTLS(hostname, configuration.CERTIFICATE_PATH + "bcomesafe.crt", configuration.CERTIFICATE_PATH + "bcomesafe.key", handler); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -122,15 +144,20 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 
 	// If a name is supplied in the webapp the video is saved in C:\\BCSVideoes and named its timestamp
 	// If not the video is deleted
+	var filename string
 	if len(request.Name) > 1 {
 		fmt.Println("Saving file")
-		var time_now = time.Now().Format("2006_01_02-15_04_05")
-		var filename = fmt.Sprintf("C:\\BCSVideos\\%s.mp4", time_now)
+		var time_now = time.Now().Format("2006-01-02_15.04.05")
+		var additional_filename_text = ""
+		if configuration.SAVE_NAME_IN_VIDEO {
+			additional_filename_text += "_" + request.Name
+		}
+		filename = fmt.Sprintf(configuration.VIDEO_SAVE_PATH + "%s%s.mp4", time_now, additional_filename_text)
 
 		fmt.Println(filename)
 		time.Sleep(1 * time.Second)
 
-		err := os.Rename(`C:\BCSVideos\temp_bcs_recording.mp4`, filename)
+		err := os.Rename(configuration.VIDEO_SAVE_PATH + "temp_bcs_recording.mp4", filename)
 		if err != nil {
 			fmt.Println("WARNING: File not found or is in use by another process (Timeout function might have saved file already)")
 		}
@@ -140,10 +167,12 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "ERROR: Length of name not longer than 1", 400)
 		time.Sleep(1 * time.Second)
 		fmt.Println("Deleting file")
-		os.Remove(`C:\BCSVideos\temp_bcs_recording.mp4`)
+		os.Remove(configuration.VIDEO_SAVE_PATH + "temp_bcs_recording.mp4")
 	}
 
-	w.Write([]byte("Stopped capturing screen"))
+	jsonData, _ := json.Marshal(map[string]string{"filename": filename})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
 }
 
 func stopTimer () {
@@ -170,8 +199,6 @@ func getStatus (w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Posting status v2")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)

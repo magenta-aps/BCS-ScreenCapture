@@ -1,0 +1,9 @@
+{
+	"RECORDING_SOFTWARE_PATH": "ffmpeg",
+        "CERTIFICATE_PATH": "./certs/",
+	"ROOTHOST": "loc.bcomesafe.com",
+	"PORT": "3032",
+	"VIDEO_SAVE_PATH": "C:/BCSVideos/",
+	"TIMEOUT_IN_MINUTES": 60,
+	"SAVE_NAME_IN_VIDEO": true
+}

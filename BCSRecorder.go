@@ -25,6 +25,7 @@ type Confirmation struct {
 
 type Configuration struct {
 	RECORDING_SOFTWARE_PATH string
+	RECORDING_SOFTWARE_PARAMS string
 	CERTIFICATE_PATH string
 	ROOTHOST string
 	PORT string
@@ -95,7 +96,7 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		recording = RECORDING
-		go captureScreen(configuration.RECORDING_SOFTWARE_PATH, configuration.VIDEO_SAVE_PATH)
+		go captureScreen(configuration.RECORDING_SOFTWARE_PATH, configuration.RECORDING_SOFTWARE_PARAMS, configuration.VIDEO_SAVE_PATH)
 		fmt.Println("Capturing Screen")
 	}
 

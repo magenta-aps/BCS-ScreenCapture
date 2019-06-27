@@ -13,17 +13,21 @@ import (
 
 var pid int
 
-func captureScreen (video_software_path string, video_path string)  {
+func captureScreen (video_software_path string, video_software_params string, video_path string)  {
 	cliParams := ""
-	switch runtime.GOOS {
-	case "linux":
-		cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.mp4", video_path)
-		break
-	case "windows":
-		cliParams += fmt.Sprintf("-f dshow -i video=\"screen-capture-recorder\" %stemp_bcs_recording.mp4", video_path)
-		break
-	default:
-		log.Fatal("Unsupported OS: " + runtime.GOOS)
+	if len(video_software_params) > 0 {
+		cliParams += fmt.Sprintf(video_software_params, video_path)
+	} else {
+		switch runtime.GOOS {
+		case "linux":
+			cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.mp4", video_path)
+			break
+		case "windows":
+			cliParams += fmt.Sprintf("-f dshow -i video=\"screen-capture-recorder\" %stemp_bcs_recording.mp4", video_path)
+			break
+		default:
+			log.Fatal("Unsupported OS: " + runtime.GOOS)
+		}
 	}
 	cmd := exec.Command(video_software_path, strings.Split(cliParams, " ")...)
 	var out bytes.Buffer
@@ -40,7 +44,9 @@ func captureScreen (video_software_path string, video_path string)  {
 	log.Print("Pid is " + strconv.Itoa(pid))
 
 	if err := cmd.Wait(); err != nil {
-		log.Printf("Video recording process has exited: %v", stderr.String())
+		if len(stderr.String()) > 0 {
+			log.Fatalf("Video recording process has exited: %v", stderr.String())
+		}
 	}
 
 }

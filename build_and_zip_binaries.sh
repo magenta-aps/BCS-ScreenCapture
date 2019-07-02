@@ -11,6 +11,7 @@ go build -o bin/BCSRecorder .
 cat << EOF >> bin/conf.json.txt
 {
 	"RECORDING_SOFTWARE_PATH": "lib/ffmpeg/bin/ffmpeg",
+	"RECORDING_SOFTWARE_PARAMS": "",
     "CERTIFICATE_PATH": "./certs/",
 	"ROOTHOST": "loc.bcomesafe.com",
 	"PORT": "3032",

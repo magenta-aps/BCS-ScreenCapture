@@ -14,7 +14,7 @@ import (
 var pid int
 
 func captureScreen (video_software_path string, video_software_params string, video_path string)  {
-	cliParams := ""
+	var cliParams string
 	if len(video_software_params) > 0 {
 		cliParams += fmt.Sprintf(video_software_params, video_path)
 	} else {
@@ -23,7 +23,7 @@ func captureScreen (video_software_path string, video_software_params string, vi
 			cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.mp4", video_path)
 			break
 		case "windows":
-			cliParams += fmt.Sprintf("-f dshow -i video=\"screen-capture-recorder\" %stemp_bcs_recording.mp4", video_path)
+			cliParams += fmt.Sprintf("-f dshow -i video=screen-capture-recorder %stemp_bcs_recording.mp4", video_path)
 			break
 		default:
 			log.Fatal("Unsupported OS: " + runtime.GOOS)
@@ -35,7 +35,7 @@ func captureScreen (video_software_path string, video_software_params string, vi
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	err := cmd.Start()
-	log.Print("Hello")
+
 	if err != nil {
 		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
 		log.Fatal("Exiting")
@@ -54,7 +54,14 @@ func captureScreen (video_software_path string, video_software_params string, vi
 func stopCapturing () {
 	log.Print("Trying to kill " + strconv.Itoa(pid))
 	process, _ := os.FindProcess(pid)
-	err := process.Signal(os.Interrupt)
+	var err error
+	switch runtime.GOOS {
+	case "windows":
+		err = process.Kill()
+		break
+	default:
+		err = process.Signal(os.Interrupt)
+	}
 	if err != nil {
 		log.Print(err)
 	}

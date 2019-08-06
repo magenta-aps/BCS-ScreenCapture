@@ -3,31 +3,27 @@ set -euxo pipefail
 
 mkdir -p bin/BCSRecorder_win64/lib
 mkdir -p bin/BCSRecorder_win64/certs
-mkdir -p bin/BCSRecorder_win386/lib
-mkdir -p bin/BCSRecorder_win386/certs
 GOOS=windows GOARCH=amd64 go build -o bin/BCSRecorder_win64/BCSRecorder.exe .
-GOOS=windows GOARCH=386 go build -o bin/BCSRecorder_win386/BCSRecorder.exe .
 go build -o bin/BCSRecorder .
 cat << EOF >> bin/conf.json.txt
 {
-	"RECORDING_SOFTWARE_PATH": "lib/ffmpeg/bin/ffmpeg",
-	"RECORDING_SOFTWARE_PARAMS": "",
-    "CERTIFICATE_PATH": "./certs/",
-	"ROOTHOST": "loc.bcomesafe.com",
-	"PORT": "3032",
-	"VIDEO_SAVE_PATH": "C:/BCSVideos/",
-	"TIMEOUT_IN_MINUTES": 60,
-	"SAVE_NAME_IN_VIDEO": true
+  "RECORDING_SOFTWARE_PATH": "lib/ffmpeg/bin/ffmpeg.exe",
+  "RECORDING_SOFTWARE_PARAMS": "-y -f dshow -i audio=virtual-audio-capturer:video=screen-capture-recorder -preset ultrafast %stemp_bcs_recording.%s",
+  "CERTIFICATE_PATH": "./certs/",
+  "ROOTHOST": "loc.bcomesafe.com",
+  "PORT": "3032",
+  "VIDEO_SAVE_PATH": "C:/BCSVideos/",
+  "VIDEO_FORMAT": "mpg",
+  "TIMEOUT_IN_MINUTES": 60,
+  "SAVE_NAME_IN_VIDEO": true,
+  "DEBUG": false
 }
 EOF
 cp bin/conf.json.txt bin/BCSRecorder_win64
-mv bin/conf.json.txt bin/BCSRecorder_win386
+cp test_recording.html bin/BCSRecorder_win64
 cp -r bin/ffmpeg bin/BCSRecorder_win64/lib
-cp -r bin/ffmpeg bin/BCSRecorder_win386/lib
+cp bin/Setup.Screen.Capturer.Recorder.v0.12.10.exe bin/BCSRecorder_win64/lib
 pushd bin/BCSRecorder_win64
 zip -r ../bcsrecorder_win64_full.zip .
 zip ../bcsrecorder_win64_minimal.zip *.*
 popd
-pushd bin/BCSRecorder_win386
-zip -r ../bcsrecorder_win386_full.zip .
-zip ../bcsrecorder_win386_minimal.zip *.*

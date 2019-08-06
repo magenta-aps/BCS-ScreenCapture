@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test of Video Capture</title>
+    <script type="text/javascript">
+        var oReq = new XMLHttpRequest();
+        var doingPost = false;
+        oReq.addEventListener("load", function() {
+            document.getElementById("status").innerHTML = "";
+            if (!doingPost) {
+                document.getElementById("status").innerHTML = "<p>" + this.responseText + "</p>" + "<p>Updating in 10 seconds ...</p>";
+            } else {
+                var fileName = JSON.parse(this.responseText).filename;
+                if (fileName != "") {
+                    document.getElementById("status").innerHTML = "<p>Recording done. File is available here: " + fileName + "</p>";
+                } else {
+                    document.getElementById("status").innerHTML = "<p>Something went wrong</p>";
+                }
+
+            }
+        });
+        oReq.open("GET", "https://loc.bcomesafe.com:3032/start");
+        oReq.send();
+        setTimeout(function() {
+            oReq.open("POST", "https://loc.bcomesafe.com:3032/stop");
+            doingPost = true;
+            oReq.send(JSON.stringify({"name": "Test"}));
+        }, 10000)
+    </script>
+</head>
+<body>
+<div id="status"></div>
+</body>
+</html>

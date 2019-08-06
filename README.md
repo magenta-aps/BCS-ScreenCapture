@@ -4,28 +4,40 @@ BCS shelter and records video and audio from the screen.
 
 ### Installation instructions
 ##### Standard installation (recommended)
-Download and unzip the win64 or win386 zip file, and make
-sure you add BComeSafe certificates to `certs` folder.
+Download and unzip the latest release, and make
+sure you add BComeSafe certificates to the `certs` folder.
+
+Run `Setup.Screen.Capturer.Recorder.v0.12.10.exe` from the
+`lib` folder and follow the installation instructions.
+ 
+Now run `BCSRecorder.exe` and verify that the installation
+is working by opening `test_status.html` in a browser. If
+everything is working, this should display a message
+indicating that the software is ready to record. To test
+recording, please open `test_recording.html` which will
+trigger a 10 second video & audio recording. 
 
 ##### Minimal installation (use when updating)
-Download and unzip the win64_minimal or win386_minimal zip
+Download and unzip the latest win64_minimal zip
 file and replace `BCSRecorder.exe` where it was originally
 extracted. You can also replace `conf.json.txt` to restore
 configuration defaults.  
   
-Note that the minimal installation requires `ffmpeg` to be
-present in `lib/ffmpeg` (relative to the installation
-folder) or in the Windows `$PATH`. Please adjust the value
-of `RECORDING_SOFTWARE_PATH` in `conf.json.txt` accordingly.
+
+### Usage
+Please add `BCSRecorder.exe` to your startup configuration
+or ensure that it is running whenever the computer is
+restarted.
 
 ### Developer instructions
 ##### Packages needed
-* `rs/cors` - install with `go get -u github.com/rs/cors`
-* `gorilla/mux` - install with `go get -u github.com/gorilla/mux`
+* `rs/cors`
+* `gorilla/mux`
 
 Rename `conf_sample.json.txt` to `conf.json.txt` and make
 sure the values are correct.
 
-To build & run the project on UNIX, run `go build -o bin/BCSRecorder . && ./BCSRecorder`  
+To build & run the project on UNIX, run
+`go build -o bin/BCSRecorder . && bin/BCSRecorder`  
 To package a Windows binary for production on UNIX, run the
 `build_and_zip_binaries.sh` script.

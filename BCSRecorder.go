@@ -30,8 +30,10 @@ type Configuration struct {
 	ROOTHOST string
 	PORT string
 	VIDEO_SAVE_PATH string
+	VIDEO_FORMAT string
 	TIMEOUT_IN_MINUTES time.Duration
 	SAVE_NAME_IN_VIDEO bool
+	DEBUG bool
 }
 
 var timeout_timer *time.Timer
@@ -96,7 +98,7 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		recording = RECORDING
-		go captureScreen(configuration.RECORDING_SOFTWARE_PATH, configuration.RECORDING_SOFTWARE_PARAMS, configuration.VIDEO_SAVE_PATH)
+		go captureScreen(configuration.RECORDING_SOFTWARE_PATH, configuration.RECORDING_SOFTWARE_PARAMS, configuration.VIDEO_FORMAT, configuration.VIDEO_SAVE_PATH, configuration.DEBUG)
 		fmt.Println("Capturing Screen")
 	}
 
@@ -158,12 +160,12 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 		if configuration.SAVE_NAME_IN_VIDEO {
 			additional_filename_text += "_" + request.Name
 		}
-		filename = fmt.Sprintf(configuration.VIDEO_SAVE_PATH + "%s%s.mp4", time_now, additional_filename_text)
+		filename = fmt.Sprintf(configuration.VIDEO_SAVE_PATH + "%s%s.%s", time_now, additional_filename_text, configuration.VIDEO_FORMAT)
 
 		fmt.Println(filename)
 		time.Sleep(1 * time.Second)
 
-		err := os.Rename(configuration.VIDEO_SAVE_PATH + "temp_bcs_recording.mp4", filename)
+		err := os.Rename(configuration.VIDEO_SAVE_PATH + "temp_bcs_recording." + configuration.VIDEO_FORMAT, filename)
 		if err != nil {
 			fmt.Println("WARNING: File not found or is in use by another process (Timeout function might have saved file already)")
 		}

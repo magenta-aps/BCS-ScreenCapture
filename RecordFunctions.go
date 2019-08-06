@@ -13,17 +13,17 @@ import (
 
 var pid int
 
-func captureScreen (video_software_path string, video_software_params string, video_path string)  {
+func captureScreen (video_software_path string, video_software_params string, video_format string, video_path string, debug bool)  {
 	var cliParams string
 	if len(video_software_params) > 0 {
-		cliParams += fmt.Sprintf(video_software_params, video_path)
+		cliParams += fmt.Sprintf(video_software_params, video_path, video_format)
 	} else {
 		switch runtime.GOOS {
 		case "linux":
-			cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.mp4", video_path)
+			cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.%s", video_path, video_format)
 			break
 		case "windows":
-			cliParams += fmt.Sprintf("-f dshow -i video=screen-capture-recorder %stemp_bcs_recording.mp4", video_path)
+			cliParams += fmt.Sprintf("-y -f dshow -i video=screen-capture-recorder %stemp_bcs_recording.%s", video_path, video_format)
 			break
 		default:
 			log.Fatal("Unsupported OS: " + runtime.GOOS)
@@ -41,18 +41,23 @@ func captureScreen (video_software_path string, video_software_params string, vi
 		log.Fatal("Exiting")
 	}
 	pid = cmd.Process.Pid
-	log.Print("Pid is " + strconv.Itoa(pid))
+	if debug {
+		log.Print("Recording screen, process id: " + strconv.Itoa(pid))
+	}
 
 	if err := cmd.Wait(); err != nil {
 		if len(stderr.String()) > 0 {
-			log.Fatalf("Video recording process has exited: %v", stderr.String())
+			if runtime.GOOS != "windows" {
+				log.Fatalf("Video recording process has exited: %v", stderr.String())
+			} else if debug {
+				log.Print(stderr.String())
+			}
 		}
 	}
 
 }
 
 func stopCapturing () {
-	log.Print("Trying to kill " + strconv.Itoa(pid))
 	process, _ := os.FindProcess(pid)
 	var err error
 	switch runtime.GOOS {

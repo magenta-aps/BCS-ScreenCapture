@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test of Video Capture</title>
+    <script type="text/javascript">
+        var oReq = new XMLHttpRequest();
+        var doingPost = false;
+        oReq.addEventListener("load", function() {
+            var res = JSON.parse(this.responseText);
+            console.log(res);
+            var statusText = "No response from server. Is BCSRecorder.exe running?";
+            if (res.Status == 0) {
+                statusText = "Ready to record";
+            } else if (res.Status == 1) {
+                statusText = "Recording";
+            } else if (res.Status == 2) {
+                statusText = "Timed out";
+            }
+            document.getElementById("status").innerHTML = "";
+            document.getElementById("status").innerHTML = "<p>Status: " + statusText + "</p>";
+        });
+        oReq.open("GET", "https://loc.bcomesafe.com:3032/status");
+        oReq.send();
+    </script>
+</head>
+<body>
+<div id="status"></div>
+</body>
+</html>

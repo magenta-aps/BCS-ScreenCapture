@@ -2,9 +2,10 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"log"
 	"os/exec"
-	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
@@ -13,23 +14,23 @@ import (
 var pid int
 var procStdin io.WriteCloser
 
-func captureScreen (video_software_path string, video_software_params string, video_format string, video_path string, debug bool)  {
+func captureScreen(videoSoftwarePath string, videoSoftwareParams string, videoFormat string, videoPath string, debug bool) {
 	var cliParams string
-	if len(video_software_params) > 0 {
-		cliParams += fmt.Sprintf(video_software_params, video_path, video_format)
+	if len(videoSoftwareParams) > 0 {
+		cliParams += fmt.Sprintf(videoSoftwareParams, videoPath, videoFormat)
 	} else {
 		switch runtime.GOOS {
 		case "linux":
-			cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.%s", video_path, video_format)
+			cliParams += fmt.Sprintf("-y -loglevel error -video_size 1920x1080 -f x11grab -i :0.0 -f pulse -i 0 -f pulse -i default -filter_complex amerge -ac 2 -preset veryfast %stemp_bcs_recording.%s", videoPath, videoFormat)
 			break
 		case "windows":
-			cliParams += fmt.Sprintf("-y -f dshow -i video=screen-capture-recorder %stemp_bcs_recording.%s", video_path, video_format)
+			cliParams += fmt.Sprintf("-y -f dshow -i video=screen-capture-recorder %stemp_bcs_recording.%s", videoPath, videoFormat)
 			break
 		default:
 			log.Fatal("Unsupported OS: " + runtime.GOOS)
 		}
 	}
-	cmd := exec.Command(video_software_path, strings.Split(cliParams, " ")...)
+	cmd := exec.Command(videoSoftwarePath, strings.Split(cliParams, " ")...)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out

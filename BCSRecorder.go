@@ -9,31 +9,32 @@ Records screen using VLC Player
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"log"
 	"net/http"
 	"os"
-	"time"
 	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 type Confirmation struct {
-	Name string
+	Name  string
 	Reset string
 }
 
 type Configuration struct {
-	RECORDING_SOFTWARE_PATH string
+	RECORDING_SOFTWARE_PATH   string
 	RECORDING_SOFTWARE_PARAMS string
-	CERTIFICATE_PATH string
-	ROOTHOST string
-	PORT string
-	VIDEO_SAVE_PATH string
-	VIDEO_FORMAT string
-	TIMEOUT_IN_MINUTES time.Duration
-	SAVE_NAME_IN_VIDEO bool
-	DEBUG bool
+	CERTIFICATE_PATH          string
+	ROOTHOST                  string
+	PORT                      string
+	VIDEO_SAVE_PATH           string
+	VIDEO_FORMAT              string
+	TIMEOUT_IN_MINUTES        time.Duration
+	SAVE_NAME_IN_VIDEO        bool
+	DEBUG                     bool
 }
 
 var timeout_timer *time.Timer
@@ -53,7 +54,7 @@ var configuration = Configuration{}
 // Insuring that we dont start recording again after stopping for timeout
 var timeout_triggered = false
 
-func main () {
+func main() {
 	// Load configuration
 	file, err := os.Open("conf.json.txt")
 	if err != nil {
@@ -81,19 +82,19 @@ func main () {
 	// Cors handling is needed due to the request coming from a different origin
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 	})
 
 	handler := c.Handler(router)
 
 	hostname := configuration.ROOTHOST + ":" + configuration.PORT
-	if err := http.ListenAndServeTLS(hostname, configuration.CERTIFICATE_PATH + "bcomesafe.crt", configuration.CERTIFICATE_PATH + "bcomesafe.key", handler); err != nil {
+	if err := http.ListenAndServeTLS(hostname, configuration.CERTIFICATE_PATH+"bcomesafe.crt", configuration.CERTIFICATE_PATH+"bcomesafe.key", handler); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func startRecording (w http.ResponseWriter, r *http.Request) {
+func startRecording(w http.ResponseWriter, r *http.Request) {
 	if recording == RECORDING || recording == WAITING || timeout_triggered == true {
 		return
 	} else {
@@ -106,17 +107,17 @@ func startRecording (w http.ResponseWriter, r *http.Request) {
 
 	// The timeout timer determines when the recording should automatically stop
 
-	timeout_timer = time.AfterFunc(configuration.TIMEOUT_IN_MINUTES * time.Minute, stopTimer)
+	timeout_timer = time.AfterFunc(configuration.TIMEOUT_IN_MINUTES*time.Minute, stopTimer)
 
 	w.Write([]byte("Capturing Screen"))
 
 }
 
-func stopRecording (w http.ResponseWriter, r *http.Request) {
+func stopRecording(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Timeout: " + strconv.FormatBool(timeout_triggered))
 	fmt.Println("Recording: " + strconv.Itoa(recording))
 
-	if (recording == INACTIVE && !timeout_triggered) {
+	if recording == INACTIVE && !timeout_triggered {
 		return
 	}
 
@@ -149,7 +150,6 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 		timeout_triggered = false
 	}
 
-
 	// If a name is supplied in the webapp the video is saved in C:\\BCSVideoes and named its timestamp
 	// If not the video is deleted
 	var filename string
@@ -160,12 +160,12 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 		if configuration.SAVE_NAME_IN_VIDEO {
 			additional_filename_text += "_" + request.Name
 		}
-		filename = fmt.Sprintf(configuration.VIDEO_SAVE_PATH + "%s%s.%s", time_now, additional_filename_text, configuration.VIDEO_FORMAT)
+		filename = fmt.Sprintf(configuration.VIDEO_SAVE_PATH+"%s%s.%s", time_now, additional_filename_text, configuration.VIDEO_FORMAT)
 
 		fmt.Println(filename)
 		time.Sleep(1 * time.Second)
 
-		err := os.Rename(configuration.VIDEO_SAVE_PATH + "temp_bcs_recording." + configuration.VIDEO_FORMAT, filename)
+		err := os.Rename(configuration.VIDEO_SAVE_PATH+"temp_bcs_recording."+configuration.VIDEO_FORMAT, filename)
 		if err != nil {
 			fmt.Println("WARNING: File not found or is in use by another process (Timeout function might have saved file already)")
 		}
@@ -183,7 +183,7 @@ func stopRecording (w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func stopTimer () {
+func stopTimer() {
 
 	fmt.Println("Stopped timer and stopping recording")
 
@@ -191,12 +191,12 @@ func stopTimer () {
 	recording = WAITING
 }
 
-// Returns the current recording status 
+// Returns the current recording status
 // INACTIVE - If not recording
 // RECORDING - If recording
 // WAITING - If stopped by timeout
 
-func getStatus (w http.ResponseWriter, r *http.Request) {
+func getStatus(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Timeout: " + strconv.FormatBool(timeout_triggered))
 	fmt.Println("Recording: " + strconv.Itoa(recording))

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"log"
-	"os"
 	"os/exec"
 	"fmt"
 	"runtime"
@@ -12,6 +11,7 @@ import (
 )
 
 var pid int
+var procStdin io.WriteCloser
 
 func captureScreen (video_software_path string, video_software_params string, video_format string, video_path string, debug bool)  {
 	var cliParams string
@@ -34,6 +34,7 @@ func captureScreen (video_software_path string, video_software_params string, vi
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
+	procStdin, _ = cmd.StdinPipe()
 	err := cmd.Start()
 
 	if err != nil {
@@ -57,17 +58,6 @@ func captureScreen (video_software_path string, video_software_params string, vi
 
 }
 
-func stopCapturing () {
-	process, _ := os.FindProcess(pid)
-	var err error
-	switch runtime.GOOS {
-	case "windows":
-		err = process.Kill()
-		break
-	default:
-		err = process.Signal(os.Interrupt)
-	}
-	if err != nil {
-		log.Print(err)
-	}
+func stopCapturing() {
+	io.WriteString(procStdin, "q")
 }
